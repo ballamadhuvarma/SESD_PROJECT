@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - SELL CART</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Link to CSS File -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">SELL CART</div>
+        <div class="links">
+            <a href="index.html">Home</a>
+            <a href="about-us.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+            <a href="login.html">Login</a>
+        </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <main>
+
+        <!-- LEFT: Cart Items -->
+        <div class="checkout-card">
+            <h2>Your Cart Items</h2>
+            <div id="cart-container" class="cart-items"></div>
+        </div>
+
+        <!-- RIGHT: Summary + Form -->
+        <div class="summary-card">
+            <div class="summary-inner">
+
+                <!-- Order Summary -->
+                <h3>Order Summary</h3>
+
+                <div class="summary-row">
+                    <span>Total Items</span>
+                    <span id="total-items">0</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span>Total Price</span>
+                    <span>₹<span id="total-price">0</span></span>
+                </div>
+
+                <!-- Checkout Form -->
+                <h3 style="margin-top:20px;">Shipping Details</h3>
+
+                <form id="order-form">
+
+                    <div class="field">
+                        <label>Full Name</label>
+                        <input type="text" id="name" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Address</label>
+                        <textarea id="address" required></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label>City</label>
+                        <input type="text" id="city" required>
+                    </div>
+
+                    <div class="field">
+                        <label>ZIP Code</label>
+                        <input type="text" id="zip" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Phone Number</label>
+                        <input type="text" id="phone" required>
+                    </div>
+
+                    <button type="submit" class="checkout-btn">Place Order</button>
+
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        © 2024 SELL CART. All rights reserved.
+    </footer>
+
+    <!-- JS -->
+    <script>
+        // Load cart from localStorage
+// checkout.js - robust version with debug logs and DOMContentLoaded
+(function () {
+  // Config
+  const DEFAULT_IMAGE = 'https://via.placeholder.com/300x200?text=Product+Image';
+
+  // Utility: escape for innerHTML safety
+  function escapeHtml(text) {
+    if (!text && text !== 0) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // Run after DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('[checkout.js] DOMContentLoaded');
+
+    // Grab elements (defensive)
+    const cartCountEl = document.getElementById('cart-count');
+    const cartContainer = document.getElementById('cart-container');
+    const totalItemsEl = document.getElementById('total-items');
+    const totalPriceEl = document.getElementById('total-price');
+    const orderForm = document.getElementById('order-form');
+    const overlay = document.getElementById('success-overlay');
+    const overlayInfo = document.getElementById('overlay-order-info');
+    const overlayHome = document.getElementById('overlay-home');
+    const overlayClose = document.getElementById('overlay-close');
+
+    // Basic validation of required elements
+    if (!cartContainer) return console.error('[checkout.js] Missing #cart-container in HTML');
+    if (!totalItemsEl) return console.error('[checkout.js] Missing #total-items in HTML');
+    if (!totalPriceEl) return console.error('[checkout.js] Missing #total-price in HTML');
+    if (!orderForm) return console.error('[checkout.js] Missing #order-form in HTML');
+    if (!overlay) console.warn('[checkout.js] Warning: #success-overlay not found - overlay will not show');
+
+    // Load cart from localStorage
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    function saveCart() {
+      localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    // Normalize
+    function normalizeCart() {
+      cart = cart.map(item => ({
+        product: item.product || 'Unnamed product',
+        price: Number(item.price) || 0,
+        image: item.image || DEFAULT_IMAGE,
+        quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,
+        description: item.description || ''
+      }));
+      saveCart();
+    }
+
+    // Update nav cart count safely
+    function updateCartCount() {
+      if (cartCountEl) cartCountEl.innerText = cart.length;
+    }
+
+    // Render cart items
+    function displayCartItems() {
+      normalizeCart();
+      updateCartCount();
+
+      cartContainer.innerHTML = '';
+
+      if (cart.length === 0) {
+        cartContainer.innerHTML = '<div class="empty-note"><strong>Your cart is empty.</strong><div class="small muted">Add items and return to checkout when ready.</div></div>';
+        totalItemsEl.innerText = '0';
+        totalPriceEl.innerText = '0';
+        return;
+      }
+
+      let itemsCount = 0;
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        itemsCount += item.quantity;
+        total += item.price * item.quantity;
+
+        const row = document.createElement('div');
+        row.className = 'cart-item';
+
+        row.innerHTML = `
+          <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.product)}" onerror="this.src='${DEFAULT_IMAGE}'">
+          <div class="meta">
+            <h4>${escapeHtml(item.product)}</h4>
+            ${item.description ? `<p class="small">${escapeHtml(item.description)}</p>` : ''}
+            <p class="price">₹${Number(item.price).toLocaleString('en-IN')}</p>
+          </div>
+          <div class="controls">
+            <div class="quantity">
+              <label class="small" style="margin-right:6px">Qty</label>
+              <input type="number" min="1" value="${item.quantity}" data-index="${index}" aria-label="Quantity for ${escapeHtml(item.product)}">
+            </div>
+            <button class="remove-btn" data-index="${index}">Remove</button>
+          </div>
+        `;
+
+        cartContainer.appendChild(row);
+      });
+
+      totalItemsEl.innerText = itemsCount;
+      totalPriceEl.innerText = total.toLocaleString('en-IN');
+
+      // listeners
+      cartContainer.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const idx = Number(e.target.dataset.index);
+          let val = parseInt(e.target.value, 10);
+          if (isNaN(val) || val < 1) val = 1;
+          cart[idx].quantity = val;
+          saveCart();
+          displayCartItems();
+        });
+      });
+
+      cartContainer.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = Number(e.currentTarget.dataset.index);
+          if (!Number.isFinite(idx)) return;
+          cart.splice(idx, 1);
+          saveCart();
+          displayCartItems();
+        });
+      });
+    }
+
+    // Show overlay helper
+    function showSuccessOverlay(orderDetails) {
+      if (!overlay) {
+        alert('Order placed successfully! Returning to home.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const totalAmount = orderDetails.totalAmount.toLocaleString('en-IN');
+      const itemsCount = orderDetails.cart.reduce((s, it) => s + Number(it.quantity), 0);
+
+      if (overlayInfo) overlayInfo.innerHTML = `Order #: <strong>#${(Math.floor(Math.random()*900000)+100000)}</strong> &nbsp; • &nbsp; Items: <strong>${itemsCount}</strong> &nbsp; • &nbsp; Total: <strong>₹${totalAmount}</strong>`;
+
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden', 'false');
+
+      if (overlayHome) overlayHome.onclick = () => window.location.href = 'index.html';
+      if (overlayClose) overlayClose.onclick = () => {
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden', 'true');
+      };
+
+      // optional auto-redirect after 4s
+      setTimeout(() => {
+        if (overlay.classList.contains('show')) {
+          window.location.href = 'index.html';
+        }
+      }, 4000);
+    }
+
+    // Form submit handler
+    orderForm.addEventListener('submit', function (ev) {
+      ev.preventDefault(); // IMPORTANT: prevents page reload
+
+      normalizeCart();
+      if (cart.length === 0) {
+        alert('Your cart is empty. Please add items before placing an order.');
+        return;
+      }
+
+      const name = document.getElementById('name')?.value.trim();
+      const address = document.getElementById('address')?.value.trim();
+      const city = document.getElementById('city')?.value.trim();
+      const zip = document.getElementById('zip')?.value.trim();
+      const phone = document.getElementById('phone')?.value.trim();
+
+      if (!name || !address || !city || !zip || !phone) {
+        alert('Please complete the shipping details.');
+        return;
+      }
+
+      const totalAmount = cart.reduce((s, it) => s + (Number(it.price) * Number(it.quantity)), 0);
+
+      const orderDetails = { name, address, city, zip, phone, cart, totalAmount, placedAt: new Date().toISOString() };
+
+      // In a real app you would POST to server here. For now just log.
+      console.log('[checkout.js] Order:', orderDetails);
+
+      // Clear cart
+      localStorage.removeItem('cart');
+      cart = [];
+      displayCartItems();
+      if (cartCountEl) cartCountEl.innerText = '0';
+
+      // Show overlay
+      showSuccessOverlay(orderDetails);
+    });
+
+    // initial render
+    try {
+      displayCartItems();
+      console.log('[checkout.js] Initial render done');
+    } catch (renderErr) {
+      console.error('[checkout.js] render error', renderErr);
+    }
+  }); // DOMContentLoaded
+})();
+</script>
+
+</body>
+</html>

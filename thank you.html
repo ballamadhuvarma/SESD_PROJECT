@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - SELL CART</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f0f3;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .thank-you-container {
+            background-color: #fff;
+            width: 90%;
+            max-width: 450px;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.7s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            color: #860731;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+            background-color: #860731;
+            padding: 12px 25px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 25px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            background-color: #a80b40;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="thank-you-container">
+        <h1>Thank You for Your Order!</h1>
+        <p>Your order has been successfully placed and will be processed shortly.</p>
+        <p>We appreciate your trust in <b>SELL CART</b>.</p>
+        <a href="index.html">Return to Home</a>
+    </div>
+</body>
+</html>

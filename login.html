@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Digital Haven</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="logo">
+            SELL CART
+        </div>
+        <div class="links">
+            <a href="home.html">Home</a>
+            <a href="about-us.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="cart.html">Cart</a>
+        </div>
+    </nav>
+
+    <!-- Login Form -->
+    <section class="login">
+        <h2>Login to Your Account</h2>
+
+        <!-- Error Message Section -->
+        <div id="error-message" class="error-message" style="display:none;">
+            <p>Incorrect username or password. Please try again.</p>
+        </div>
+
+        <form action="login_process.php" method="POST" class="login-form" onsubmit="return validateForm()">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+            <p><a href="forgot-password.html">Forgot your password?</a></p>
+            <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2024 SELL CART. All rights reserved.
+    </footer>
+
+    <!-- JavaScript for Error Handling -->
+    <script>
+        function validateForm() {
+            // Simulate a failed login attempt (you can replace this with actual validation logic)
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            // For demonstration, assume "test" is the correct username and "password123" is the correct password
+            if (username !== "test" || password !== "password123") {
+                // Show error message if credentials don't match
+                document.getElementById("error-message").style.display = "block";
+                return false;  // Prevent form submission
+            }
+            return true;  // Allow form submission if credentials are correct
+        }
+    </script>
+
+</body>
+
+</html>
